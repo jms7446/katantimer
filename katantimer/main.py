@@ -11,6 +11,8 @@ class MyWindow(QWidget):
         self.numPlayers = 3
         self.players = ["어무니", "큰아들", "작은아들"]
         self.diffLimit = 5 * 60
+        self.baseTime = 20
+        self.curBaseTime = 0
 
         self.paused = True
         self.timer = QTimer(self)
@@ -55,10 +57,10 @@ class MyWindow(QWidget):
         # self.playerMonitor.setFixedHeight(400)
         # self.playerMonitor.setFixedWidth(800)
         monitorLayout.addWidget(self.playerMonitor)
+        self.baseTimeMonitor = makeLCD()
+        monitorLayout.addWidget(self.baseTimeMonitor)
         self.minDiffMonitor = makeLCD()
         monitorLayout.addWidget(self.minDiffMonitor)
-        # self.maxDiffMonitor = makeLCD()
-        # monitorLayout.addWidget(self.maxDiffMonitor)
         layout.addLayout(monitorLayout)
 
         btnLayout = QHBoxLayout()
@@ -88,10 +90,11 @@ class MyWindow(QWidget):
 
     def onResetButtonClicked(self):
         self.paused = True
+        self.timer.stop()
         self.curIdx = 0
         self.spentTimes = [0] * self.numPlayers
-        self.playerMonitor.setText("ABCD")
-
+        self.curBaseTime = self.baseTime
+        self.refresh()
 
     def onStartPauseButtonClicked(self):
         if self.paused:
@@ -103,13 +106,19 @@ class MyWindow(QWidget):
 
     def onNextButtonClicked(self):
         self.curIdx = (self.curIdx + 1) % 3
+        self.curBaseTime = self.baseTime
+        # self.refresh()
 
     def timeout(self):
         sender = self.sender()
-        if id(sender) != id(self.timer):
-            return
+        if id(sender) == id(self.timer):
+            if self.curBaseTime > 0:
+                self.curBaseTime -= 1
+            else:
+                self.spentTimes[self.curIdx] += self.interval
+            self.refresh()
 
-        self.spentTimes[self.curIdx] += self.interval
+    def refresh(self):
         curTime = self.spentTimes[self.curIdx]
         minDiffTime = curTime - min(self.spentTimes)
         remainTime = self.diffLimit - minDiffTime
@@ -123,7 +132,12 @@ class MyWindow(QWidget):
         else:
             self.minDiffMonitor.setStyleSheet("Color : green")
         self.minDiffMonitor.display(secondToString(remainTime))
-        # self.maxDiffMonitor.display(secondToString(maxDiffTime))
+
+        if self.curBaseTime > 5:
+            self.baseTimeMonitor.setStyleSheet("Color : green")
+        else:
+            self.baseTimeMonitor.setStyleSheet("Color : orange")
+        self.baseTimeMonitor.display(secondToString(self.curBaseTime))
 
 
 def secondToString(seconds):
