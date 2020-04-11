@@ -11,7 +11,8 @@ class MyWindow(QWidget):
         self.numPlayers = 3
         self.players = ["어무니", "큰아들", "작은아들"]
         self.diffLimit = 5 * 60
-        self.baseTime = 20
+        self.baseLimit = 2 * 60
+        self.baseTime = 10
         self.curBaseTime = 0
 
         self.paused = True
@@ -120,8 +121,9 @@ class MyWindow(QWidget):
 
     def refresh(self):
         curTime = self.spentTimes[self.curIdx]
-        minDiffTime = curTime - min(self.spentTimes)
-        remainTime = self.diffLimit - minDiffTime
+        # minDiffTime = curTime - min(self.spentTimes)
+        # remainTime = self.diffLimit - minDiffTime
+        remainTime = self.baseLimit - curTime
 
         self.playerMonitor.setText(self.players[self.curIdx])
         self.lcds[self.curIdx].display(secondToString(curTime))
